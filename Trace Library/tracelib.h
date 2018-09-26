@@ -11,6 +11,8 @@
     trace_event_end
     trace_object_new
     trace_object_gone
+    trace_instant_global
+    trace_counter
 */
 #ifndef TRACELIB_H_INCLUDED
 #define TRACELIB_H_INCLUDED
@@ -197,7 +199,7 @@ inline void trace_event_end(std::initializer_list<const char*> argumentNames, st
 
     Pushes a line to the dataVector to create an object (i.e. "ph" = "N")
 */
-void trace_object_new(const char* name, const void* obj_pointer)
+inline void trace_object_new(const char* name, const void* obj_pointer)
 {
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
@@ -213,7 +215,7 @@ void trace_object_new(const char* name, const void* obj_pointer)
 
     Pushes a line to the dataVector to destroy an object (i.e. "ph" = "D")
 */
-void trace_object_gone(const char* name, const void* obj_pointer)
+inline void trace_object_gone(const char* name, const void* obj_pointer)
 {
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
@@ -222,6 +224,57 @@ void trace_object_gone(const char* name, const void* obj_pointer)
     name, PID_VALUE,  TID_VALUE, (int)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
 
     dataVector.push_back(stringBuffer);
+}
+
+/*
+    void trace_instant_global(name, scope='t')
+
+    Pushes a line to the dataVector to create a global instant
+*/
+inline void trace_instant_global(const char* name)
+{
+    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
+
+    sprintf(stringBuffer,
+    "{\"name\": \"%s\", \"ph\": \"i\", \"pid\": %i, \"tid\": %i, \"s\": \"g\", \"ts\": %i},\n",
+    name, PID_VALUE,  TID_VALUE, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+
+    dataVector.push_back(stringBuffer);
+}
+
+/*
+    void trace_counter(name, key, value)
+
+    Pushes a line to the dataVector to create a counter event
+    key contains the names, value contains the respective values
+*/
+inline void trace_counter(const char* name, std::initializer_list<const char*> key, std::initializer_list<const char*> value)
+{
+    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
+
+    if(key.size() != value.size()) //Lists have different sizes
+    {
+        std::cerr << "Error: Argument lists for " << name << " in trace_counter are not the same size; ignoring this event.\n";
+        //return
+    }
+    else
+    {
+        sprintf(stringBuffer,
+        "{\"name\": \"%s\", \"ph\": \"C\", \"pid\": %i, \"tid\": %i, \"ts\": %i, \"args\": { ",
+        name, PID_VALUE,  TID_VALUE, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+        auto itNames  = key.begin();
+        auto itValues = value.begin();
+        for(size_t i=0; i<key.size(); i++)
+        {
+            sprintf(stringBuffer + strlen(stringBuffer),
+            "\"%s\": %s",
+            *itNames++,*itValues++);
+
+            if(i!=key.size()-1) sprintf(stringBuffer + strlen(stringBuffer),", "); //add comma if not last variable
+        }
+        sprintf(stringBuffer + strlen(stringBuffer),"} },\n");
+        dataVector.push_back(stringBuffer);
+    }
 }
 
 }
