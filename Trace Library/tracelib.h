@@ -204,8 +204,8 @@ inline void trace_object_new(const char* name, const void* obj_pointer)
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
-    "{\"name\": \"%s\", \"ph\": \"N\", \"pid\": %i, \"tid\": %i, \"id\": %i, \"ts\": %i},\n",
-    name, PID_VALUE,  TID_VALUE, (int)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    "{\"name\": \"%s\", \"ph\": \"N\", \"pid\": %i, \"tid\": %i, \"id\": %li, \"ts\": %i},\n",
+    name, PID_VALUE,  TID_VALUE, (long)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
 
     dataVector.push_back(stringBuffer);
 }
@@ -220,8 +220,8 @@ inline void trace_object_gone(const char* name, const void* obj_pointer)
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
-    "{\"name\": \"%s\", \"ph\": \"D\", \"pid\": %i, \"tid\": %i, \"id\": %i, \"ts\": %i},\n",
-    name, PID_VALUE,  TID_VALUE, (int)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    "{\"name\": \"%s\", \"ph\": \"D\", \"pid\": %i, \"tid\": %i, \"id\": %li, \"ts\": %i},\n",
+    name, PID_VALUE,  TID_VALUE, (long)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
 
     dataVector.push_back(stringBuffer);
 }
