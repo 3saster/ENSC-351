@@ -1,0 +1,9 @@
+This archive should contain three files: "test.cpp", "tracelib.h", and "Makefile".
+
+tracelib.h is the library of trace library functions and their (inline) implementations.
+test.cpp is a very simple program to show off how the trace library's functions behave.
+Makefile is self-explanatory.
+
+To compile the program, either use the "make" command or the following compilation instructions:
+	g++ -std=c++11 test.cpp tracelib.h -o test
+This should produce a file called test. Simply run it now to generate a trace.json.
