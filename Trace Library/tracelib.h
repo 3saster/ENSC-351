@@ -99,13 +99,13 @@ inline void trace_end()
 
     Pushes a line to the dataVector to start an event (i.e. "ph" = "B"). Inputs are self explanatory
 */
-inline void trace_event_start(const char* name, const char* categories)
+inline void trace_event_start(const char* name, const char* categories, const unsigned int tid=TID_VALUE)
 {
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"cat\": \"%s\", \"ph\": \"B\", \"pid\": %i, \"tid\": %i, \"ts\": %i},\n",
-    name,   categories, PID_VALUE,  TID_VALUE,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    name,   categories, PID_VALUE,  tid,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
 
     dataVector.push_back(stringBuffer);
 }
@@ -115,7 +115,7 @@ inline void trace_event_start(const char* name, const char* categories)
 
     Same as above, but takes arguments
 */
-inline void trace_event_start(const char* name, const char* categories, std::initializer_list<const char*> argumentNames, std::initializer_list<const char*> argumentValues)
+inline void trace_event_start(const char* name, const char* categories, std::initializer_list<const char*> argumentNames, std::initializer_list<const char*> argumentValues, const unsigned int tid=TID_VALUE)
 {
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
@@ -128,7 +128,7 @@ inline void trace_event_start(const char* name, const char* categories, std::ini
     {
         sprintf(stringBuffer,
         "{\"name\": \"%s\", \"cat\": \"%s\", \"ph\": \"B\", \"pid\": %i, \"tid\": %i, \"ts\": %i, \"args\": { ",
-        name,   categories, PID_VALUE,  TID_VALUE,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+        name,   categories, PID_VALUE,  tid,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
         auto itNames  = argumentNames.begin();
         auto itValues = argumentValues.begin();
         for(size_t i=0; i<argumentNames.size(); i++)
@@ -149,13 +149,13 @@ inline void trace_event_start(const char* name, const char* categories, std::ini
 
     Pushes a line to the dataVector to end an event (i.e. "ph" = "E").
 */
-inline void trace_event_end()
+inline void trace_event_end(const unsigned int tid=TID_VALUE)
 {
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
     "{\"ph\": \"E\", \"pid\": %i, \"tid\": %i, \"ts\": %i},\n",
-    PID_VALUE,  TID_VALUE,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    PID_VALUE,  tid,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
 
     dataVector.push_back(stringBuffer);
 }
@@ -165,7 +165,7 @@ inline void trace_event_end()
 
     Same as above, but takes arguments
 */
-inline void trace_event_end(std::initializer_list<const char*> argumentNames, std::initializer_list<const char*> argumentValues)
+inline void trace_event_end(std::initializer_list<const char*> argumentNames, std::initializer_list<const char*> argumentValues, const unsigned int tid=TID_VALUE)
 {
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
@@ -178,7 +178,7 @@ inline void trace_event_end(std::initializer_list<const char*> argumentNames, st
     {
         sprintf(stringBuffer,
         "{\"ph\": \"E\", \"pid\": %i, \"tid\": %i, \"ts\": %i, \"args\": { ",
-        PID_VALUE,  TID_VALUE,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+        PID_VALUE,  tid,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
         auto itNames  = argumentNames.begin();
         auto itValues = argumentValues.begin();
         for(size_t i=0; i<argumentNames.size(); i++)
@@ -199,13 +199,13 @@ inline void trace_event_end(std::initializer_list<const char*> argumentNames, st
 
     Pushes a line to the dataVector to create an object (i.e. "ph" = "N")
 */
-inline void trace_object_new(const char* name, const void* obj_pointer)
+inline void trace_object_new(const char* name, const void* obj_pointer, const unsigned int tid=TID_VALUE)
 {
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"ph\": \"N\", \"pid\": %i, \"tid\": %i, \"id\": %li, \"ts\": %i},\n",
-    name, PID_VALUE,  TID_VALUE, (long)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    name, PID_VALUE,  tid, (long)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
 
     dataVector.push_back(stringBuffer);
 }
@@ -215,13 +215,13 @@ inline void trace_object_new(const char* name, const void* obj_pointer)
 
     Pushes a line to the dataVector to destroy an object (i.e. "ph" = "D")
 */
-inline void trace_object_gone(const char* name, const void* obj_pointer)
+inline void trace_object_gone(const char* name, const void* obj_pointer, const unsigned int tid=TID_VALUE)
 {
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"ph\": \"D\", \"pid\": %i, \"tid\": %i, \"id\": %li, \"ts\": %i},\n",
-    name, PID_VALUE,  TID_VALUE, (long)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    name, PID_VALUE,  tid, (long)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
 
     dataVector.push_back(stringBuffer);
 }
@@ -231,13 +231,13 @@ inline void trace_object_gone(const char* name, const void* obj_pointer)
 
     Pushes a line to the dataVector to create a global instant
 */
-inline void trace_instant_global(const char* name)
+inline void trace_instant_global(const char* name, const unsigned int tid=TID_VALUE)
 {
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"ph\": \"i\", \"pid\": %i, \"tid\": %i, \"s\": \"g\", \"ts\": %i},\n",
-    name, PID_VALUE,  TID_VALUE, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    name, PID_VALUE,  tid, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
 
     dataVector.push_back(stringBuffer);
 }
@@ -248,7 +248,7 @@ inline void trace_instant_global(const char* name)
     Pushes a line to the dataVector to create a counter event
     key contains the names, value contains the respective values
 */
-inline void trace_counter(const char* name, std::initializer_list<const char*> key, std::initializer_list<const char*> value)
+inline void trace_counter(const char* name, std::initializer_list<const char*> key, std::initializer_list<const char*> value, const unsigned int tid=TID_VALUE)
 {
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
@@ -261,7 +261,7 @@ inline void trace_counter(const char* name, std::initializer_list<const char*> k
     {
         sprintf(stringBuffer,
         "{\"name\": \"%s\", \"ph\": \"C\", \"pid\": %i, \"tid\": %i, \"ts\": %i, \"args\": { ",
-        name, PID_VALUE,  TID_VALUE, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+        name, PID_VALUE,  tid, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
         auto itNames  = key.begin();
         auto itValues = value.begin();
         for(size_t i=0; i<key.size(); i++)
