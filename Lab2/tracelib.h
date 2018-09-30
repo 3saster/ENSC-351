@@ -23,6 +23,9 @@
 #include <iostream>
 #include <chrono>
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 namespace trace
 {
 using Clock=std::chrono::high_resolution_clock;
@@ -217,8 +220,8 @@ inline void trace_object_new(const char* name, const void* obj_pointer, const un
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
-    "{\"name\": \"%s\", \"ph\": \"N\", \"pid\": %i, \"tid\": %i, \"id\": %li, \"ts\": %i},\n",
-    name, PID_VALUE,  tid, (long)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    "{\"name\": \"%s\", \"ph\": \"N\", \"pid\": %i, \"tid\": %i, \"id\": %" PRIuPTR ", \"ts\": %i},\n",
+    name, PID_VALUE,  tid, (uintptr_t)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
 
     dataVector.push_back(stringBuffer);
 }
@@ -235,8 +238,8 @@ inline void trace_object_gone(const char* name, const void* obj_pointer, const u
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
-    "{\"name\": \"%s\", \"ph\": \"D\", \"pid\": %i, \"tid\": %i, \"id\": %li, \"ts\": %i},\n",
-    name, PID_VALUE,  tid, (long)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    "{\"name\": \"%s\", \"ph\": \"D\", \"pid\": %i, \"tid\": %i, \"id\": %" PRIuPTR ", \"ts\": %i},\n",
+    name, PID_VALUE,  tid, (uintptr_t)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
 
     dataVector.push_back(stringBuffer);
 }
