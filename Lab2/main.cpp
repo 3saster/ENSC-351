@@ -20,7 +20,7 @@ bool cellArray[NUM_THREADS+1] = { false };
 std::mutex mtx;
 
 /*  FUNCTIONS   */
-//Method 1: A simple lock (in theory unnecessary since door is atomic)
+//Method 1: A simple lock (in theory unnecessary if door was atomic)
 void method_1(const unsigned int tid)
 {
     //Wait for other threads
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
     thread_init = false;
     //Create Array of Threads
     trace::trace_event_start("Thread Initialization", "Init");
-    trace::trace_counter("Threads Created", {"Extra Threads"}, {"0"} );
+    trace::trace_counter("Extra Threads", {"Extra Threads"}, {"0"} );
     for(int i=0; i<NUM_THREADS; i++)
     {
         threadArray[i] = std::thread(method_1,i+2); //First thread created should be thread 2
@@ -101,10 +101,10 @@ int main(int argc, char *argv[])
     #endif
 
     door = 0;
-    thread_init = false
+    thread_init = false;
     //Create Array of Threads
     trace::trace_event_start("Thread Initialization", "Init");
-    trace::trace_counter("Threads Created", {"Extra Threads"}, {"0"} );
+    trace::trace_counter("Extra Threads", {"Extra Threads"}, {"0"} );
     for(int i=0; i<NUM_THREADS; i++)
     {
         threadArray[i] = std::thread(method_2,i+2); //First thread created should be thread 2
