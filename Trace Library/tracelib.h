@@ -36,7 +36,7 @@ static int TID_VALUE = 1; //For now, always 1
 static std::ofstream traceFile;
 static char stringBuffer[1000];
 static bool clockInit = false;
-static std::chrono::system_clock::time_point startTime;
+static std::chrono::high_resolution_clock::time_point startTime;
 
 /*
     bool trace_start(filename)
