@@ -29,6 +29,7 @@ using Clock=std::chrono::high_resolution_clock;
 
 //Constants and Statics
 const int TRACE_MAX = 10000;
+const bool traceActive = false;
 static std::vector<std::string> dataVector;
 static int PID_VALUE = 1; //For now, always 1
 static int TID_VALUE = 1; //For now, always 1
@@ -43,7 +44,7 @@ static std::chrono::system_clock::time_point startTime;
     Starts the trace procedure. This includes opening the file (only written to on closing
     or exceeding the memory however), and allocating a vector to contain the data.
 
-    Output is true if successfull, false otherwise.
+    Output is true if successful, false otherwise.
 */
 inline bool trace_start(const char* filename)
 {
@@ -64,6 +65,7 @@ inline bool trace_start(const char* filename)
         startTime = Clock::now();
         clockInit = true;
     }
+    traceActive = true;
     return 1;
 }
 
@@ -92,6 +94,7 @@ inline void trace_end()
     trace_flush();
     traceFile << "\n]"; //Closing Brace of JSON
     traceFile.close();
+    traceActive = false;
 }
 
 /*
@@ -101,6 +104,8 @@ inline void trace_end()
 */
 inline void trace_event_start(const char* name, const char* categories, const unsigned int tid=TID_VALUE)
 {
+    if(!traceActive) return; //Do nothing if trace_start not called
+
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
@@ -117,6 +122,8 @@ inline void trace_event_start(const char* name, const char* categories, const un
 */
 inline void trace_event_start(const char* name, const char* categories, std::initializer_list<const char*> argumentNames, std::initializer_list<const char*> argumentValues, const unsigned int tid=TID_VALUE)
 {
+    if(!traceActive) return; //Do nothing if trace_start not called
+
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     if(argumentNames.size() != argumentValues.size()) //Lists have different sizes
@@ -151,6 +158,8 @@ inline void trace_event_start(const char* name, const char* categories, std::ini
 */
 inline void trace_event_end(const unsigned int tid=TID_VALUE)
 {
+    if(!traceActive) return; //Do nothing if trace_start not called
+
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
@@ -167,6 +176,8 @@ inline void trace_event_end(const unsigned int tid=TID_VALUE)
 */
 inline void trace_event_end(std::initializer_list<const char*> argumentNames, std::initializer_list<const char*> argumentValues, const unsigned int tid=TID_VALUE)
 {
+    if(!traceActive) return; //Do nothing if trace_start not called
+
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     if(argumentNames.size() != argumentValues.size()) //Lists have different sizes
@@ -201,6 +212,8 @@ inline void trace_event_end(std::initializer_list<const char*> argumentNames, st
 */
 inline void trace_object_new(const char* name, const void* obj_pointer, const unsigned int tid=TID_VALUE)
 {
+    if(!traceActive) return; //Do nothing if trace_start not called
+
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
@@ -217,6 +230,8 @@ inline void trace_object_new(const char* name, const void* obj_pointer, const un
 */
 inline void trace_object_gone(const char* name, const void* obj_pointer, const unsigned int tid=TID_VALUE)
 {
+    if(!traceActive) return; //Do nothing if trace_start not called
+
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
@@ -233,6 +248,8 @@ inline void trace_object_gone(const char* name, const void* obj_pointer, const u
 */
 inline void trace_instant_global(const char* name, const unsigned int tid=TID_VALUE)
 {
+    if(!traceActive) return; //Do nothing if trace_start not called
+
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     sprintf(stringBuffer,
@@ -250,6 +267,8 @@ inline void trace_instant_global(const char* name, const unsigned int tid=TID_VA
 */
 inline void trace_counter(const char* name, std::initializer_list<const char*> key, std::initializer_list<const char*> value, const unsigned int tid=TID_VALUE)
 {
+    if(!traceActive) return; //Do nothing if trace_start not called
+
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
     if(key.size() != value.size()) //Lists have different sizes
