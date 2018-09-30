@@ -2,6 +2,7 @@
 #include <atomic>
 #include <mutex>
 #include <chrono>
+#include <queue>
 #include <iostream>
 
 #include "tracelib.h"
@@ -15,6 +16,9 @@ int door(0); //intentionally non-atomic
 std::atomic<bool> thread_init(false);
 //Used in method 2
 bool cellArray[NUM_THREADS+1] = { false };
+//Used in method 3
+std::atomic<unsigned int> nowServing;
+std::queue<int> tickets;
 
 /*  MUTEXES */
 std::mutex mtx;
@@ -55,8 +59,35 @@ void method_2(const unsigned int tid)
 
     trace::trace_event_start("Method 2 Increment", "Main", tid);
     door++; //Enter
-    cellArray[true_tid+1] = true; //Allow next person to enter
     trace::trace_event_end(tid);
+    cellArray[true_tid+1] = true; //Allow next person to enter
+}
+
+//Method 3: Ticket Lock Implementation
+void method_3(const unsigned int tid)
+{
+    //Wait for other threads
+    while(!thread_init)
+    {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+    }
+
+    //Add ticket to ticket list
+    mtx.lock();
+    tickets.push(tid);
+    mtx.unlock();
+
+    //Wait your turn
+    while( nowServing != tid )
+    {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+    }
+
+    trace::trace_event_start("Method 3 Increment", "Main", tid);
+    door++; //Enter
+    trace::trace_event_end(tid);
+    tickets.pop(); //Remove your ticket;
+    nowServing = tickets.front(); //Allow next person to go
 }
 
 /*  MAIN THREAD  */
@@ -73,11 +104,9 @@ int main(int argc, char *argv[])
     thread_init = false;
     //Create Array of Threads
     trace::trace_event_start("Thread Initialization", "Init");
-    trace::trace_counter("Extra Threads", {"Extra Threads"}, {"0"} );
     for(int i=0; i<NUM_THREADS; i++)
     {
         threadArray[i] = std::thread(method_1,i+2); //First thread created should be thread 2
-        trace::trace_counter("Extra Threads", {"Extra Threads"}, {std::to_string(i).c_str()} );
     }
     trace::trace_event_end();
 
@@ -86,7 +115,6 @@ int main(int argc, char *argv[])
     for(int i=0; i<NUM_THREADS; i++)
     {
         threadArray[i].join();
-        trace::trace_counter("Extra Threads", {"Extra Threads"}, {std::to_string(NUM_THREADS-i-1).c_str()} );
     }
 
     std::cout << "There are " << door << " people inside after Method 1.\n";
@@ -104,11 +132,9 @@ int main(int argc, char *argv[])
     thread_init = false;
     //Create Array of Threads
     trace::trace_event_start("Thread Initialization", "Init");
-    trace::trace_counter("Extra Threads", {"Extra Threads"}, {"0"} );
     for(int i=0; i<NUM_THREADS; i++)
     {
         threadArray[i] = std::thread(method_2,i+2); //First thread created should be thread 2
-        trace::trace_counter("Extra Threads", {"Extra Threads"}, {std::to_string(i).c_str()} );
     }
     trace::trace_event_end();
 
@@ -119,7 +145,6 @@ int main(int argc, char *argv[])
     for(int i=0; i<NUM_THREADS; i++)
     {
         threadArray[i].join();
-        trace::trace_counter("Extra Threads", {"Extra Threads"}, {std::to_string(NUM_THREADS-i-1).c_str()} );
     }
 
     std::cout << "There are " << door << " people inside after Method 2.\n";
@@ -128,5 +153,40 @@ int main(int argc, char *argv[])
         trace::trace_end();
     #endif
 
-    return 1;
+    /*  METHOD 3    */
+    #if LOGGING
+        trace::trace_start("method_3.json");
+    #endif
+
+    door = 0;
+    thread_init = false;
+    //Create Array of Threads
+    trace::trace_event_start("Thread Initialization", "Init");
+    for(int i=0; i<NUM_THREADS; i++)
+    {
+        threadArray[i] = std::thread(method_3,i+2); //First thread created should be thread 2
+    }
+    trace::trace_event_end();
+
+    thread_init = true;
+    //Wait for there to be a line
+    while(tickets.empty())
+    {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+    }
+    //Let the first guy in
+    nowServing = tickets.front();
+
+    for(int i=0; i<NUM_THREADS; i++)
+    {
+        threadArray[i].join();
+    }
+
+    std::cout << "There are " << door << " people inside after Method 3.\n";
+
+    #if LOGGING
+        trace::trace_end();
+    #endif
+
+    return 0;
 }
