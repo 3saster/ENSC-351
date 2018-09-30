@@ -29,7 +29,7 @@ using Clock=std::chrono::high_resolution_clock;
 
 //Constants and Statics
 const int TRACE_MAX = 10000;
-const bool traceActive = false;
+static bool traceActive = false;
 static std::vector<std::string> dataVector;
 static int PID_VALUE = 1; //For now, always 1
 static int TID_VALUE = 1; //For now, always 1
