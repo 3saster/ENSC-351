@@ -49,13 +49,12 @@ void method_2(const unsigned int tid)
         std::this_thread::sleep_for(std::chrono::nanoseconds(1));
     }
 
+    int true_tid = tid-2; //Match tid to cell array; i.e. thread 2 = 0 in array
     //Wait your turn
-    while( !cellArray[tid-2] )
+    while( !cellArray[true_tid] )
     {
         std::this_thread::sleep_for(std::chrono::nanoseconds(1));
     }
-
-    int true_tid = tid-2; //Match tid to cell array; i.e. thread 2 = 0 in array
 
     trace::trace_event_start("Method 2 Increment", "Main", tid);
     door++; //Enter
