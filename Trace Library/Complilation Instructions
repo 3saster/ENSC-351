@@ -5,5 +5,5 @@ test.cpp is a very simple program to show off how the trace library's functions 
 Makefile is self-explanatory.
 
 To compile the program, either use the "make" command or the following compilation instructions:
-	g++ -std=c++11 test.cpp tracelib.h -o test
+	g++ -std=c++11 test.cpp -o test
 This should produce a file called test. Simply run it now to generate a trace.json.

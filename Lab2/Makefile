@@ -3,8 +3,8 @@ CC = g++
 CC_FLAGS = -std=c++11 -pthread
 
 # Make
-main: main.cpp tracelib.h
-	$(CC) $(CC_FLAGS) main.cpp tracelib.h -o Lab2
+main: main.cpp
+	$(CC) $(CC_FLAGS) main.cpp -o Lab2
  
 # Clean
 clean:

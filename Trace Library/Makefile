@@ -3,8 +3,8 @@ CC = g++
 CC_FLAGS = -std=c++11
 
 # Make
-test: test.cpp tracelib.h
-	$(CC) $(CC_FLAGS) test.cpp tracelib.h -o test
+test: test.cpp
+	$(CC) $(CC_FLAGS) test.cpp -o test
  
 # Clean
 clean:
