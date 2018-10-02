@@ -34,7 +34,7 @@ void method_1(const unsigned int tid)
     }
 
     mtx.lock();
-    trace::trace_event_start("Method 1 Increment", "Main", tid);
+    trace::trace_event_start("Method 1 Increment", "Method 1", tid);
     door++;
     trace::trace_event_end(tid);
     mtx.unlock();
@@ -56,7 +56,7 @@ void method_2(const unsigned int tid)
         std::this_thread::sleep_for(std::chrono::nanoseconds(1));
     }
 
-    trace::trace_event_start("Method 2 Increment", "Main", tid);
+    trace::trace_event_start("Method 2 Increment", "Method 2", tid);
     door++; //Enter
     trace::trace_event_end(tid);
     cellArray[true_tid+1] = true; //Allow next person to enter
@@ -82,7 +82,7 @@ void method_3(const unsigned int tid)
         std::this_thread::sleep_for(std::chrono::nanoseconds(1));
     }
 
-    trace::trace_event_start("Method 3 Increment", "Main", tid);
+    trace::trace_event_start("Method 3 Increment", "Method 3", tid);
     door++; //Enter
     trace::trace_event_end(tid);
     tickets.pop(); //Remove your ticket;
@@ -93,50 +93,45 @@ void method_3(const unsigned int tid)
 int main(int argc, char *argv[])
 {
     std::thread threadArray[NUM_THREADS];
-
-    /*  METHOD 1    */
+    /*  START LOGGING   */
     #if LOGGING
-        trace::trace_start("method_1.json");
+        trace::trace_start("trace.json");
     #endif
 
+    /*  METHOD 1    */
     door = 0;
     thread_init = false;
     //Create Array of Threads
-    trace::trace_event_start("Thread Initialization", "Init");
+    trace::trace_event_start("Thread Initialization", "Method 1");
     for(int i=0; i<NUM_THREADS; i++)
     {
         threadArray[i] = std::thread(method_1,i+2); //First thread created should be thread 2
     }
     trace::trace_event_end();
 
+    trace::trace_event_start("Method 1", "Method 1");
     thread_init = true;
 
     for(int i=0; i<NUM_THREADS; i++)
     {
         threadArray[i].join();
     }
+    trace::trace_event_end();
 
     std::cout << "There are " << door << " people inside after Method 1.\n";
 
-    #if LOGGING
-        trace::trace_end();
-    #endif
-
     /*  METHOD 2    */
-    #if LOGGING
-        trace::trace_start("method_2.json");
-    #endif
-
     door = 0;
     thread_init = false;
     //Create Array of Threads
-    trace::trace_event_start("Thread Initialization", "Init");
+    trace::trace_event_start("Thread Initialization", "Method 2");
     for(int i=0; i<NUM_THREADS; i++)
     {
         threadArray[i] = std::thread(method_2,i+2); //First thread created should be thread 2
     }
     trace::trace_event_end();
 
+    trace::trace_event_start("Method 2", "Method 2");
     thread_init = true;
     //Let first guy in
     cellArray[0] = true;
@@ -145,28 +140,22 @@ int main(int argc, char *argv[])
     {
         threadArray[i].join();
     }
+    trace::trace_event_end();
 
     std::cout << "There are " << door << " people inside after Method 2.\n";
 
-    #if LOGGING
-        trace::trace_end();
-    #endif
-
     /*  METHOD 3    */
-    #if LOGGING
-        trace::trace_start("method_3.json");
-    #endif
-
     door = 0;
     thread_init = false;
     //Create Array of Threads
-    trace::trace_event_start("Thread Initialization", "Init");
+    trace::trace_event_start("Thread Initialization", "Method 3");
     for(int i=0; i<NUM_THREADS; i++)
     {
         threadArray[i] = std::thread(method_3,i+2); //First thread created should be thread 2
     }
     trace::trace_event_end();
 
+    trace::trace_event_start("Method 3", "Method 3");
     thread_init = true;
     //Wait for there to be a line
     while(tickets.empty())
@@ -180,9 +169,11 @@ int main(int argc, char *argv[])
     {
         threadArray[i].join();
     }
+    trace::trace_event_end();
 
     std::cout << "There are " << door << " people inside after Method 3.\n";
 
+    /*  END LOGGING */
     #if LOGGING
         trace::trace_end();
     #endif

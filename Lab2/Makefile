@@ -8,4 +8,4 @@ main: main.cpp
  
 # Clean
 clean:
-	rm -f Lab2 method_1.json method_2.json method_3.json
+	rm -f Lab2 trace.json
