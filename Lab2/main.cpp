@@ -9,7 +9,9 @@
 #define LOGGING 1 //Set to one to turn on tracing
 
 /*  CONSTANTS   */
-const int NUM_THREADS = 500;
+#ifndef NUM_THREADS
+    #define NUM_THREADS 1000
+#endif
 
 /*  GLOBALS */
 int door(0); //intentionally non-atomic
