@@ -4,6 +4,7 @@
 #include <chrono>
 #include <queue>
 #include <iostream>
+#include <csignal>
 
 #include "tracelib.h"
 #define LOGGING 1 //Set to one to turn on tracing
@@ -98,6 +99,9 @@ int main(int argc, char *argv[])
     /*  START LOGGING   */
     #if LOGGING
         trace::trace_start("trace.json");
+        auto traceEnd = [] (int i) { trace::trace_end(); exit(128+i); };
+        std::signal(SIGINT, traceEnd); //^C
+        std::signal(SIGABRT, traceEnd); //abort()
     #endif
 
     /*  METHOD 1    */
@@ -111,6 +115,7 @@ int main(int argc, char *argv[])
     }
     trace::trace_event_end();
 
+    std::cout << "Method 1 threads have been initialized.\n";
     trace::trace_event_start("Method 1", "Method 1");
     thread_init = true;
 
@@ -133,6 +138,7 @@ int main(int argc, char *argv[])
     }
     trace::trace_event_end();
 
+    std::cout << "Method 2 threads have been initialized.\n";
     trace::trace_event_start("Method 2", "Method 2");
     thread_init = true;
     //Let first guy in
@@ -157,6 +163,7 @@ int main(int argc, char *argv[])
     }
     trace::trace_event_end();
 
+    std::cout << "Method 3 threads have been initialized.\n";
     trace::trace_event_start("Method 3", "Method 3");
     thread_init = true;
     //Wait for there to be a line
