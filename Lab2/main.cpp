@@ -20,8 +20,9 @@ std::atomic<bool> thread_init(false);
 //Used in method 2
 bool cellArray[NUM_THREADS+1] = { false };
 //Used in method 3
-std::atomic<unsigned int> nowServing;
-std::queue<int> tickets;
+int tickets[NUM_THREADS+1] = { 0 }; //Ensure going beyond the end hits a non-existent thread (0)
+std::atomic<int*> nowServing(&tickets[0]);
+std::atomic<int> lineSpot(0);
 
 /*  MUTEXES */
 std::mutex mtx;
@@ -76,11 +77,11 @@ void method_3(const unsigned int tid)
 
     //Add ticket to ticket list
     mtx.lock();
-    tickets.push(tid);
+    tickets[lineSpot++] = tid;
     mtx.unlock();
 
     //Wait your turn
-    while( nowServing != tid )
+    while( *nowServing != tid )
     {
         std::this_thread::sleep_for(std::chrono::nanoseconds(1));
     }
@@ -88,8 +89,7 @@ void method_3(const unsigned int tid)
     trace::trace_event_start("Method 3 Increment", "Method 3", tid);
     door++; //Enter
     trace::trace_event_end(tid);
-    tickets.pop(); //Remove your ticket;
-    nowServing = tickets.front(); //Allow next person to go
+    nowServing++; //Allow next person to go
 }
 
 /*  MAIN THREAD  */
@@ -166,13 +166,6 @@ int main(int argc, char *argv[])
     std::cout << "Method 3 threads have been initialized.\n";
     trace::trace_event_start("Method 3", "Method 3");
     thread_init = true;
-    //Wait for there to be a line
-    while(tickets.empty())
-    {
-        std::this_thread::sleep_for(std::chrono::nanoseconds(1));
-    }
-    //Let the first guy in
-    nowServing = tickets.front();
 
     for(int i=0; i<NUM_THREADS; i++)
     {
