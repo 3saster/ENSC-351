@@ -9,8 +9,4 @@ main: main.cpp
  
 # Clean
 clean:
-	rm -f Lab2 trace.json short_trace.json
-	
-# Shorten the trace.json to show only the main thread
-short:
-	echo [ > short_trace.json; awk '/"tid": 1,/' trace.json >> short_trace.json; echo ] >> short_trace.json;
+	rm -f Lab2 method_1.json method_2.json method_3.json
