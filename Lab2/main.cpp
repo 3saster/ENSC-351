@@ -95,12 +95,12 @@ void method_2(const unsigned int tid)
 
     trace::trace_event_start("Method 2 Increment", "Method 2", tid);
     door++;
+    cellArray[true_tid+1] = true;
     trace::trace_event_end(tid);
     
     //Allow next person to enter
     {
         std::unique_lock<std::mutex> lck(m_2);
-        cellArray[true_tid+1] = true;
         cv_2.notify_all();
         cv_wait.notify_one();
     }
@@ -121,12 +121,12 @@ void method_3(const unsigned int tid)
 
     trace::trace_event_start("Method 3 Increment", "Method 3", tid);
     door++;
+    nowServing++;
     trace::trace_event_end(tid);
     
     //Allow next person to enter
     {
         std::unique_lock<std::mutex> lck(m_3);
-        nowServing++;
         cv_3.notify_all();
         cv_wait.notify_one();
     }

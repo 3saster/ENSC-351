@@ -22,6 +22,7 @@
 #include <fstream>
 #include <iostream>
 #include <chrono>
+#include <mutex>
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
@@ -40,6 +41,7 @@ static std::ofstream traceFile;
 static char stringBuffer[1000];
 static bool clockInit = false;
 static std::chrono::high_resolution_clock::time_point startTime;
+static std::mutex mtx;
 
 /*
     bool trace_start(filename)
@@ -111,11 +113,14 @@ inline void trace_event_start(const char* name, const char* categories, const un
 
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
+    int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
+    mtx.lock();
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"cat\": \"%s\", \"ph\": \"B\", \"pid\": %i, \"tid\": %i, \"ts\": %i},\n",
-    name,   categories, PID_VALUE,  tid,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    name,   categories, PID_VALUE,  tid,  time );
 
     dataVector.push_back(stringBuffer);
+    mtx.unlock();
 }
 
 /*
@@ -136,9 +141,11 @@ inline void trace_event_start(const char* name, const char* categories, std::ini
     }
     else
     {
+        int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
+        mtx.lock();
         sprintf(stringBuffer,
         "{\"name\": \"%s\", \"cat\": \"%s\", \"ph\": \"B\", \"pid\": %i, \"tid\": %i, \"ts\": %i, \"args\": { ",
-        name,   categories, PID_VALUE,  tid,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+        name,   categories, PID_VALUE,  tid,  time );
         auto itNames  = argumentNames.begin();
         auto itValues = argumentValues.begin();
         for(size_t i=0; i<argumentNames.size(); i++)
@@ -151,6 +158,7 @@ inline void trace_event_start(const char* name, const char* categories, std::ini
         }
         sprintf(stringBuffer + strlen(stringBuffer),"} },\n");
         dataVector.push_back(stringBuffer);
+        mtx.unlock();
     }
 }
 
@@ -165,11 +173,14 @@ inline void trace_event_end(const unsigned int tid=TID_VALUE)
 
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
+    int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
+    mtx.lock();
     sprintf(stringBuffer,
     "{\"ph\": \"E\", \"pid\": %i, \"tid\": %i, \"ts\": %i},\n",
-    PID_VALUE,  tid,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    PID_VALUE,  tid,  time );
 
     dataVector.push_back(stringBuffer);
+    mtx.unlock();
 }
 
 /*
@@ -190,9 +201,11 @@ inline void trace_event_end(std::initializer_list<const char*> argumentNames, st
     }
     else
     {
+        int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
+        mtx.lock();
         sprintf(stringBuffer,
         "{\"ph\": \"E\", \"pid\": %i, \"tid\": %i, \"ts\": %i, \"args\": { ",
-        PID_VALUE,  tid,  int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+        PID_VALUE,  tid,  time );
         auto itNames  = argumentNames.begin();
         auto itValues = argumentValues.begin();
         for(size_t i=0; i<argumentNames.size(); i++)
@@ -205,6 +218,7 @@ inline void trace_event_end(std::initializer_list<const char*> argumentNames, st
         }
         sprintf(stringBuffer + strlen(stringBuffer),"} },\n");
         dataVector.push_back(stringBuffer);
+        mtx.unlock();
     }
 }
 
@@ -219,11 +233,14 @@ inline void trace_object_new(const char* name, const void* obj_pointer, const un
 
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
+    int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
+    mtx.lock();
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"ph\": \"N\", \"pid\": %i, \"tid\": %i, \"id\": %" PRIuPTR ", \"ts\": %i},\n",
-    name, PID_VALUE,  tid, (uintptr_t)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    name, PID_VALUE,  tid, (uintptr_t)obj_pointer, time );
 
     dataVector.push_back(stringBuffer);
+    mtx.unlock();
 }
 
 /*
@@ -237,11 +254,14 @@ inline void trace_object_gone(const char* name, const void* obj_pointer, const u
 
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
+    int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
+    mtx.lock();
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"ph\": \"D\", \"pid\": %i, \"tid\": %i, \"id\": %" PRIuPTR ", \"ts\": %i},\n",
-    name, PID_VALUE,  tid, (uintptr_t)obj_pointer, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    name, PID_VALUE,  tid, (uintptr_t)obj_pointer, time );
 
     dataVector.push_back(stringBuffer);
+    mtx.unlock();
 }
 
 /*
@@ -255,11 +275,14 @@ inline void trace_instant_global(const char* name, const unsigned int tid=TID_VA
 
     if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
 
+    int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
+    mtx.lock();
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"ph\": \"i\", \"pid\": %i, \"tid\": %i, \"s\": \"g\", \"ts\": %i},\n",
-    name, PID_VALUE,  tid, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+    name, PID_VALUE,  tid, time );
 
     dataVector.push_back(stringBuffer);
+    mtx.unlock();
 }
 
 /*
@@ -281,9 +304,11 @@ inline void trace_counter(const char* name, std::initializer_list<const char*> k
     }
     else
     {
+        int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
+        mtx.lock();
         sprintf(stringBuffer,
         "{\"name\": \"%s\", \"ph\": \"C\", \"pid\": %i, \"tid\": %i, \"ts\": %i, \"args\": { ",
-        name, PID_VALUE,  tid, int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count()) );
+        name, PID_VALUE,  tid, time );
         auto itNames  = key.begin();
         auto itValues = value.begin();
         for(size_t i=0; i<key.size(); i++)
@@ -296,6 +321,7 @@ inline void trace_counter(const char* name, std::initializer_list<const char*> k
         }
         sprintf(stringBuffer + strlen(stringBuffer),"} },\n");
         dataVector.push_back(stringBuffer);
+        mtx.unlock();
     }
 }
 
