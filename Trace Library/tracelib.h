@@ -111,10 +111,9 @@ inline void trace_event_start(const char* name, const char* categories, const un
 {
     if(!traceActive) return; //Do nothing if trace_start not called
 
-    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
-
     int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
     mtx.lock();
+    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"cat\": \"%s\", \"ph\": \"B\", \"pid\": %i, \"tid\": %i, \"ts\": %i},\n",
     name,   categories, PID_VALUE,  tid,  time );
@@ -132,8 +131,6 @@ inline void trace_event_start(const char* name, const char* categories, std::ini
 {
     if(!traceActive) return; //Do nothing if trace_start not called
 
-    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
-
     if(argumentNames.size() != argumentValues.size()) //Lists have different sizes
     {
         std::cerr << "Error: Argument lists for " << name << " in trace_event_start are not the same size; ignoring them.\n";
@@ -143,6 +140,7 @@ inline void trace_event_start(const char* name, const char* categories, std::ini
     {
         int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
         mtx.lock();
+        if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
         sprintf(stringBuffer,
         "{\"name\": \"%s\", \"cat\": \"%s\", \"ph\": \"B\", \"pid\": %i, \"tid\": %i, \"ts\": %i, \"args\": { ",
         name,   categories, PID_VALUE,  tid,  time );
@@ -171,10 +169,9 @@ inline void trace_event_end(const unsigned int tid=TID_VALUE)
 {
     if(!traceActive) return; //Do nothing if trace_start not called
 
-    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
-
     int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
     mtx.lock();
+    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
     sprintf(stringBuffer,
     "{\"ph\": \"E\", \"pid\": %i, \"tid\": %i, \"ts\": %i},\n",
     PID_VALUE,  tid,  time );
@@ -192,8 +189,6 @@ inline void trace_event_end(std::initializer_list<const char*> argumentNames, st
 {
     if(!traceActive) return; //Do nothing if trace_start not called
 
-    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
-
     if(argumentNames.size() != argumentValues.size()) //Lists have different sizes
     {
         std::cerr << "Error: Argument lists in trace_event_end are not the same size; ignoring them.\n";
@@ -203,6 +198,7 @@ inline void trace_event_end(std::initializer_list<const char*> argumentNames, st
     {
         int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
         mtx.lock();
+        if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
         sprintf(stringBuffer,
         "{\"ph\": \"E\", \"pid\": %i, \"tid\": %i, \"ts\": %i, \"args\": { ",
         PID_VALUE,  tid,  time );
@@ -231,10 +227,9 @@ inline void trace_object_new(const char* name, const void* obj_pointer, const un
 {
     if(!traceActive) return; //Do nothing if trace_start not called
 
-    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
-
     int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
     mtx.lock();
+    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"ph\": \"N\", \"pid\": %i, \"tid\": %i, \"id\": %" PRIuPTR ", \"ts\": %i},\n",
     name, PID_VALUE,  tid, (uintptr_t)obj_pointer, time );
@@ -252,10 +247,9 @@ inline void trace_object_gone(const char* name, const void* obj_pointer, const u
 {
     if(!traceActive) return; //Do nothing if trace_start not called
 
-    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
-
     int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
     mtx.lock();
+    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"ph\": \"D\", \"pid\": %i, \"tid\": %i, \"id\": %" PRIuPTR ", \"ts\": %i},\n",
     name, PID_VALUE,  tid, (uintptr_t)obj_pointer, time );
@@ -273,10 +267,9 @@ inline void trace_instant_global(const char* name, const unsigned int tid=TID_VA
 {
     if(!traceActive) return; //Do nothing if trace_start not called
 
-    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
-
     int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
     mtx.lock();
+    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
     sprintf(stringBuffer,
     "{\"name\": \"%s\", \"ph\": \"i\", \"pid\": %i, \"tid\": %i, \"s\": \"g\", \"ts\": %i},\n",
     name, PID_VALUE,  tid, time );
@@ -295,8 +288,6 @@ inline void trace_counter(const char* name, std::initializer_list<const char*> k
 {
     if(!traceActive) return; //Do nothing if trace_start not called
 
-    if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
-
     if(key.size() != value.size()) //Lists have different sizes
     {
         std::cerr << "Error: Argument lists for " << name << " in trace_counter are not the same size; ignoring this event.\n";
@@ -306,6 +297,7 @@ inline void trace_counter(const char* name, std::initializer_list<const char*> k
     {
         int time = int(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-startTime).count());
         mtx.lock();
+        if( dataVector.size() == dataVector.capacity() ) trace_flush(); //Flush if full
         sprintf(stringBuffer,
         "{\"name\": \"%s\", \"ph\": \"C\", \"pid\": %i, \"tid\": %i, \"ts\": %i, \"args\": { ",
         name, PID_VALUE,  tid, time );
