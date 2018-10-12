@@ -20,9 +20,9 @@ int main(int argc, char *argv[])
     }
 
     // Open file
-    std::ifstream traceFile;
-    traceFile.open(argv[1]);
-    if(!traceFile.is_open())
+    std::ifstream textFile;
+    textFile.open(argv[1]);
+    if(!textFile.is_open())
     {
         std::cerr << "Error: Unable to open file \"" << argv[1] << "\".\n";
         return 1;
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     // Count Words
     std::string word;
     std::map<std::string, int> wordCount;
-    while( traceFile >> word )
+    while( textFile >> word )
     {
         wordCount[word]++;
     }
