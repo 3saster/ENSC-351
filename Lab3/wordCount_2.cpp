@@ -11,7 +11,9 @@
 #include "threadpool/ctpl_stl.h"
 #include "tracelib.h"
 #define LOGGING 1 //Set to one to turn on tracing
-#define NUM_THREADS std::thread::hardware_concurrency()-1 //Number of effective additional cores
+#ifndef NUM_THREADS
+    #define NUM_THREADS std::thread::hardware_concurrency()-1 //Number of effective additional cores
+#endif
 
 typedef std::string data;
 typedef std::pair<data,int> kvPair;
@@ -94,7 +96,10 @@ void mapReduce(std::ifstream& textFile)
     dataVector = input_reader(textFile);
     for(auto& element : dataVector)
     {
-        tp.push(thread_map, element,std::ref(pairVector));
+        if(NUM_THREADS > 0)
+            tp.push(thread_map, element,std::ref(pairVector));
+        else
+            thread_map(-1,element,pairVector);
     }
     while(tp.n_idle() != NUM_THREADS){} //Spinlock until threads are done mapping
 
@@ -108,7 +113,10 @@ void mapReduce(std::ifstream& textFile)
         else
         {
             std::vector<kvPair> shortVector (groupFront,groupBack);
-            tp.push(thread_reduce, shortVector,std::ref(reducedVector));
+            if(NUM_THREADS > 0)
+                tp.push(thread_reduce, shortVector,std::ref(reducedVector));
+            else
+                thread_reduce(-1,shortVector,reducedVector);
             groupFront = groupBack;
         }
     }
