@@ -1,6 +1,6 @@
 # Declaration of variables
 CC = g++
-CC_FLAGS = -std=c++11
+CC_FLAGS = -std=c++11 -pthread
 
 # Make
 main: wordCount_1.cpp wordCount_2.cpp
