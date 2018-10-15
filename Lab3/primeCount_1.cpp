@@ -9,24 +9,27 @@
 #include "tracelib.h"
 #define LOGGING 1 //Set to one to turn on tracing
 
-bool is_prime(long long int n)
+bool is_prime(long long int n,int tid=1)
 {
-    trace::trace_event_start("Check Prime","Check Prime");
+    trace::trace_event_start("Check Prime","Check Prime",tid);
     bool retValue = true;
 
     if (n < 2)
         retValue = false;
 
+    if ( n%2 == 0 )
+        retValue = false;
+
     if(retValue)
     {
         long long int mid = sqrt(n);
-        for(long long int i = 2; i <= mid; i++)
+        for(long long int i = 3; i <= mid; i=i+2)
         {
             if( n%i == 0 )
                 retValue = false;
         }
     }
-    trace::trace_event_end();
+    trace::trace_event_end(tid);
     return retValue;
 }
 

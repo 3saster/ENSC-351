@@ -12,7 +12,7 @@
 #include "tracelib.h"
 #define LOGGING 1 //Set to one to turn on tracing
 #ifndef NUM_THREADS
-    #define NUM_THREADS std::thread::hardware_concurrency()-1 //Number of effective additional cores
+    #define NUM_THREADS std::thread::hardware_concurrency()*3
 #endif
 
 typedef std::string data;

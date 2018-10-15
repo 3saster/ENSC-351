@@ -12,7 +12,7 @@
 #include "tracelib.h"
 #define LOGGING 1 //Set to one to turn on tracing
 #ifndef NUM_THREADS
-    #define NUM_THREADS std::thread::hardware_concurrency()-1 //Number of effective additional cores
+    #define NUM_THREADS std::thread::hardware_concurrency()*3 
 #endif
 
 typedef long long int data;
@@ -27,10 +27,13 @@ bool is_prime(long long int n,int tid=1)
     if (n < 2)
         retValue = false;
 
+    if ( n%2 == 0 )
+        retValue = false;
+
     if(retValue)
     {
         long long int mid = sqrt(n);
-        for(long long int i = 2; i <= mid; i++)
+        for(long long int i = 3; i <= mid; i=i+2)
         {
             if( n%i == 0 )
                 retValue = false;
@@ -183,7 +186,7 @@ int main(int argc, char *argv[])
     trace::trace_event_end();
 
     /*    MapReduce    */
-    trace::trace_event_start("Count Words","Prime Count 2");
+    trace::trace_event_start("Count Primes","Prime Count 2");
     mapReduce(textFile);
     trace::trace_event_end();
 
