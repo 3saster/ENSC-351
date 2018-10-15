@@ -101,7 +101,7 @@ void mapReduce(std::ifstream& textFile)
         else
             thread_map(-1,element,pairVector);
     }
-    while(tp.n_idle() != NUM_THREADS){} //Spinlock until threads are done mapping
+    while(tp.is_busy()){} //Spinlock until threads are done mapping
 
     std::sort (pairVector.begin(), pairVector.end());
     auto groupFront = pairVector.begin();
@@ -121,7 +121,7 @@ void mapReduce(std::ifstream& textFile)
         }
     }
 
-    while(tp.n_idle() != NUM_THREADS){} //Spinlock until threads are done mapping
+    while(tp.is_busy()){} //Spinlock until threads are done reducing
 
     std::sort(reducedVector.begin(), reducedVector.end());
     output(reducedVector);

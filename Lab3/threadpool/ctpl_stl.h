@@ -87,6 +87,9 @@ namespace ctpl {
         int n_idle() { return this->nWaiting; }
         std::thread & get_thread(int i) { return *this->threads[i]; }
 
+        // find out if threads still have work to be done
+        int is_busy() { return !( this->q.empty() && (this->nWaiting == this->size()) ); }
+
         // change the number of threads in the pool
         // should be called from one thread, otherwise be careful to not interleave, also with this->stop()
         // nThreads must be >= 0
