@@ -14,7 +14,10 @@ wordcount: wordCount_1.cpp wordCount_2.cpp
 primecount:
 	$(CC) $(CC_FLAGS) $(CC_EXTRA) primeCount_1.cpp -o primeCount_1
 	$(CC) $(CC_FLAGS) $(CC_EXTRA) primeCount_2.cpp -o primeCount_2
-	./makePrime.sh
+
+# make a list of prime number data
+primelist:
+	python -c "import random; my_randoms = random.sample(xrange(2**32-1), 10**5); sarr = [str(a) for a in my_randoms]; print ' '.join(sarr)" > prime.txt
 
 # Clean
 clean:

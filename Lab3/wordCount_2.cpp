@@ -88,6 +88,7 @@ void thread_reduce(int tid, std::vector<kvPair> groupVector, std::vector<kvPair>
 
 void mapReduce(std::ifstream& textFile)
 {
+    trace::trace_event_start("Count Words","Word Count 2");
     std::vector<data> dataVector;
     std::vector<kvPair> pairVector;
     std::vector<kvPair> reducedVector;
@@ -122,7 +123,8 @@ void mapReduce(std::ifstream& textFile)
     }
 
     while(tp.is_busy()){} //Spinlock until threads are done reducing
-
+    trace::trace_event_end();
+    
     std::sort(reducedVector.begin(), reducedVector.end());
     output(reducedVector);
 }
@@ -158,9 +160,7 @@ int main(int argc, char *argv[])
     trace::trace_event_end();
 
     /*    MapReduce    */
-    trace::trace_event_start("Count Words","Word Count 2");
     mapReduce(textFile);
-    trace::trace_event_end();
 
     // End process
     trace::trace_event_end();

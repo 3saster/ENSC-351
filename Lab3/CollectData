@@ -1,0 +1,219 @@
+#!/bin/bash
+
+MIN_THREADS=3;
+MAX_THREADS=12;
+TRIALS=1000;
+
+WORDFILE=gatsby.txt
+PRIMEFILE=prime.txt
+PRIMESIZE=100000
+
+# Remove all previous data
+rm -rf data/*
+mkdir -p data
+
+# WORDCOUNT
+# Rebuild
+make clean > /dev/null
+make wordcount > /dev/null
+
+# Print out TRIALS data sets for wordCount_1
+echo
+for i in `seq 1 $TRIALS`;
+do
+    echo "wordCount_1: Trial $i"
+
+    ./wordCount_1 $WORDFILE > /dev/null
+    cat wordCount_1.json > data/wordCount_1__$i.json
+    rm -f wordCount_1.json
+done
+echo
+
+# Print out TRIALS data sets for each thread-value for wordCount_2
+for T in `seq $MIN_THREADS $MAX_THREADS`;
+do
+    make wordcount CC_EXTRA="-DNUM_THREADS=$T" > /dev/null
+    for i in `seq 1 $TRIALS`;
+    do
+        echo "wordCount_2 with $T threads: Trial $i"
+
+        ./wordCount_2 $WORDFILE > /dev/null
+        cat wordCount_2.json > data/wordCount_2_T${T}__${i}.json
+        rm -f wordCount_2.json
+    done
+    echo
+done
+
+# PRIMECOUNT
+# Rebuild
+make primecount > /dev/null
+make primelist > /dev/null
+
+# Print out TRIALS data sets for primeCount_1
+for i in `seq 1 $TRIALS`;
+do
+    echo "primeCount_1: Trial $i"
+
+    ./primeCount_1 $PRIMEFILE > /dev/null
+    cat primeCount_1.json > data/primeCount_1__$i.json
+    rm -f primeCount_1.json
+done
+echo
+
+# Print out TRIALS data sets for each thread-value for primeCount_2
+for T in `seq $MIN_THREADS $MAX_THREADS`;
+do
+    make primecount CC_EXTRA="-DNUM_THREADS=$T" > /dev/null
+    for i in `seq 1 $TRIALS`;
+    do
+        echo "primeCount_2 with $T threads: Trial $i"
+
+        ./primeCount_2 $PRIMEFILE > /dev/null
+        cat primeCount_2.json > data/primeCount_2_T${T}__${i}.json
+        rm -f primeCount_2.json
+    done
+    echo
+done
+
+# ANALYSIS
+# Keep raw data
+cd data
+mkdir -p traces
+cp ./* ./traces/ 2>/dev/null
+
+# Convert all to ts, remove unnecessary parts
+for i in `seq 1 $TRIALS`
+do
+    jq .[].ts wordCount_1__$i.json | sponge wordCount_1__$i.json
+    awk 'FNR==1 {print;exit}' wordCount_1__$i.json >  temp
+    awk 'FNR==8 {print;exit}' wordCount_1__$i.json >> temp
+    awk 'FNR==4 {print;exit}' wordCount_1__$i.json >> temp
+    awk 'FNR==5 {print;exit}' wordCount_1__$i.json >> temp
+    cat temp > wordCount_1__$i.json
+
+    jq .[].ts primeCount_1__$i.json | sponge primeCount_1__$i.json
+    awk 'FNR==1 {print;exit}' primeCount_1__$i.json >  temp
+    tac primeCount_1__$i.json | awk "FNR==1 {print;exit}"  >> temp
+    awk 'FNR==4 {print;exit}' primeCount_1__$i.json >>  temp
+    tac primeCount_1__$i.json | awk "FNR==4 {print;exit}"  >> temp
+    cat temp > primeCount_1__$i.json
+
+    for T in `seq $MIN_THREADS $MAX_THREADS`;
+    do
+        jq .[].ts wordCount_2_T${T}__${i}.json | sponge wordCount_2_T${T}__${i}.json
+        awk 'FNR==1 {print;exit}' wordCount_2_T${T}__${i}.json >  temp
+        tac wordCount_2_T${T}__${i}.json | awk 'FNR==1 {print;exit}'  >> temp
+        awk 'FNR==4 {print;exit}' wordCount_2_T${T}__${i}.json >> temp
+        tac wordCount_2_T${T}__${i}.json | awk 'FNR==4 {print;exit}'  >> temp
+        cat temp > wordCount_2_T${T}__${i}.json
+
+        jq .[].ts primeCount_2_T${T}__${i}.json | sponge primeCount_2_T${T}__${i}.json
+        awk 'FNR==1 {print;exit}' primeCount_2_T${T}__${i}.json >  temp
+        tac primeCount_2_T${T}__${i}.json | awk 'FNR==1 {print;exit}'  >> temp
+        awk 'FNR==4 {print;exit}' primeCount_2_T${T}__${i}.json >> temp
+        tac primeCount_2_T${T}__${i}.json | awk 'FNR==4 {print;exit}'  >> temp
+        cat temp > primeCount_2_T${T}__${i}.json
+    done
+done
+rm -rf temp
+
+# Extract the time differences
+for i in `seq 1 $TRIALS`;
+do
+    awk 'ORS=NR%2?" ":"\n"' wordCount_1__$i.json  | awk '{print $2-$1}' | sponge wordCount_1__$i.json;
+    awk 'ORS=NR%2?" ":"\n"' primeCount_1__$i.json | awk '{print $2-$1}' | sponge primeCount_1__$i.json;
+    for T in `seq $MIN_THREADS $MAX_THREADS`;
+    do
+        awk 'ORS=NR%2?" ":"\n"' wordCount_2_T${T}__${i}.json  | awk '{print $2-$1}' | sponge wordCount_2_T${T}__${i}.json;
+        awk 'ORS=NR%2?" ":"\n"' primeCount_2_T${T}__${i}.json | awk '{print $2-$1}' | sponge primeCount_2_T${T}__${i}.json;
+    done
+done
+
+# Put results together
+> results_wordcount_1.txt
+> results_primecount_1.txt
+for T in `seq $MIN_THREADS $MAX_THREADS`;
+do
+    > results_wordcount_T${T}_2.txt
+    > results_primecount_T${T}_2.txt
+done
+
+for i in `seq 1 $TRIALS`;
+do
+    paste wordCount_1__$i.json  results_wordcount_1.txt  | column -t | sponge results_wordcount_1.txt;
+    paste primeCount_1__$i.json results_primecount_1.txt | column -t | sponge results_primecount_1.txt;
+    for T in `seq $MIN_THREADS $MAX_THREADS`;
+    do
+        paste wordCount_2_T${T}__${i}.json  results_wordcount_T${T}_2.txt  | column -t | sponge results_wordcount_T${T}_2.txt;
+        paste primeCount_2_T${T}__${i}.json results_primecount_T${T}_2.txt | column -t | sponge results_primecount_T${T}_2.txt;
+    done
+done
+
+# Get mean and standard deviations of methods
+awk '{x=0; y=0; for(i=1; i<=NF; i++){x+=$i;y+=$i^2}; print x/NF " " sqrt(y/NF-(x/NF)^2) }' results_wordcount_1.txt  | tr '\n' ' ' | sponge results_wordcount_1.txt;
+awk '{x=0; y=0; for(i=1; i<=NF; i++){x+=$i;y+=$i^2}; print x/NF " " sqrt(y/NF-(x/NF)^2) }' results_primecount_1.txt | tr '\n' ' ' | sponge results_primecount_1.txt;
+for T in `seq $MIN_THREADS $MAX_THREADS`;
+do
+    awk '{x=0; y=0; for(i=1; i<=NF; i++){x+=$i;y+=$i^2}; print x/NF " " sqrt(y/NF-(x/NF)^2) }' results_wordcount_T${T}_2.txt  | tr '\n' ' ' | sponge results_wordcount_T${T}_2.txt;
+    awk '{x=0; y=0; for(i=1; i<=NF; i++){x+=$i;y+=$i^2}; print x/NF " " sqrt(y/NF-(x/NF)^2) }' results_primecount_T${T}_2.txt | tr '\n' ' ' | sponge results_primecount_T${T}_2.txt;
+done
+
+# Summarize results
+echo -e "$TRIALS Trials executed for each program.\n\n" > Summary.txt
+
+echo "Word Count 1" >> Summary.txt;
+awk '{ printf "\tTotal Time:\n";
+printf "\t\tMean: %i µs\n", $1;
+printf "\t\tStandard Deviation: %i µs\n", $2;
+
+printf "\tTime Counting Words:\n";
+printf "\t\tMean: %i µs\n", $3;
+printf "\t\tStandard Deviation: %i µs\n", $4;
+}' results_wordcount_1.txt >> Summary.txt;
+echo >> Summary.txt;
+
+for T in `seq $MIN_THREADS $MAX_THREADS`;
+do
+    echo "Word Count 2 with $T Threads" >> Summary.txt;
+    awk '{ printf "\tTotal Time:\n";
+    printf "\t\tMean: %i µs\n", $1;
+    printf "\t\tStandard Deviation: %i µs\n", $2;
+
+    printf "\tTime Counting Words:\n";
+    printf "\t\tMean: %i µs\n", $3;
+    printf "\t\tStandard Deviation: %i µs\n", $4;
+    }' results_wordcount_T${T}_2.txt >> Summary.txt;
+    echo >> Summary.txt;
+done
+
+echo '――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――' >> Summary.txt;
+echo >> Summary.txt;
+
+echo "Prime Count 1" >> Summary.txt;
+awk '{ printf "\tTotal Time:\n";
+printf "\t\tMean: %i µs\n", $1;
+printf "\t\tStandard Deviation: %i µs\n", $2;
+
+printf "\tTime Counting Primes:\n";
+printf "\t\tMean: %i µs\n", $3;
+printf "\t\tStandard Deviation: %i µs\n", $4;
+}' results_primecount_1.txt >> Summary.txt;
+echo >> Summary.txt;
+
+for T in `seq $MIN_THREADS $MAX_THREADS`;
+do
+    echo "Prime Count 2 with $T Threads" >> Summary.txt;
+    awk '{ printf "\tTotal Time:\n";
+    printf "\t\tMean: %i µs\n", $1;
+    printf "\t\tStandard Deviation: %i µs\n", $2;
+
+    printf "\tTime Counting Primes:\n";
+    printf "\t\tMean: %i µs\n", $3;
+    printf "\t\tStandard Deviation: %i µs\n", $4;
+    }' results_primecount_T${T}_2.txt >> Summary.txt;
+    echo >> Summary.txt;
+done
+
+# Clean up
+rm -r *.json results_*
+cd ..
