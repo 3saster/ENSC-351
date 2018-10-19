@@ -54,9 +54,9 @@ void mapReduce(std::ifstream& textFile)
     #pragma omp parallel for
     for(auto element = dataVector.begin(); element < dataVector.end(); element++)
     {
-    auto mappedElement = map(*element);
-    #pragma omp critical
-        pairVector.push_back( mappedElement );
+        auto mappedElement = map(*element);
+        #pragma omp critical
+            pairVector.push_back( mappedElement );
     }
 
     //Get Clumps
@@ -80,9 +80,9 @@ void mapReduce(std::ifstream& textFile)
     #pragma omp parallel for
     for(auto clump = clumpVector.begin(); clump < clumpVector.end(); clump++)
     {
-    auto pushPair = reduce(*clump);
-    #pragma omp critical
-        reducedVector.push_back( pushPair );
+        auto pushPair = reduce(*clump);
+        #pragma omp critical
+            reducedVector.push_back( pushPair );
     }
     
     //Output
