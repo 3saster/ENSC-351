@@ -76,7 +76,6 @@ void mapReduce(std::ifstream& textFile)
     }
 
     //Reduce
-    int i=0;
     #pragma omp parallel for
     for(auto clump = clumpVector.begin(); clump < clumpVector.end(); clump++)
     {
