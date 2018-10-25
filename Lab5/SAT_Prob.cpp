@@ -77,11 +77,12 @@ bool_SAT SAT_Problem::Check()
         auto sign = [](int x) {return x/abs(x);};
 
         for( auto var:clauses[i] )
-            clauseOutput.push_back( static_cast<bool_SAT>(sign(var)*vars[abs(var)]) );
+            clauseOutput.push_back( static_cast<bool_SAT>(sign(var)*vars[abs(var)-1]) );
 
         clauseResults[i] = *std::max_element(clauseOutput.begin(), clauseOutput.end());
     }
-    return *std::max_element(clauseResults.begin(), clauseResults.end());
+
+    return *std::min_element(clauseResults.begin(), clauseResults.end());
 }
 
 /*
@@ -118,11 +119,12 @@ bool SAT_Problem::Solve()
                     if( vars[i] == True )
                     {
                         vars[i] = False;
+                        i++;
                         break;
                     }
                     else
                     {
-                        vars[i] == Unset;
+                        vars[i] = Unset;
                         i--;
                     }
                 }
