@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     SAT_Problem sat(textFile);
     if( sat.Solve() )
     {
-        std::cout << "A solution was found. Note that the left-most number is variable 1, and X's are don't-cares." << std::endl;
+        std::cout << "A solution was found. Note that the left-most number is variable 1, and X's are don't-cares." << std::endl << std::endl;
         sat.Print();
     }
     else

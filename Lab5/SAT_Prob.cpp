@@ -71,6 +71,7 @@ Note that we are using a three-valued boolean under Kleene logic.
 bool_SAT SAT_Problem::Check()
 {
     std::vector<bool_SAT> clauseResults ( clauses.size(), Unset );
+    #pragma omp parallel for
     for (int i=0; i<clauses.size(); i++)
     {
         std::vector<bool_SAT> clauseOutput;
@@ -94,13 +95,14 @@ true if a solution is found, otherwise return false.
 bool SAT_Problem::Solve()
 {
     //Ensure variables are all unset
+    backtracks=0;
     for( auto &v:vars )
         v=Unset;
     //Backtrack search
     int i=0;
     while ( i <= vars.size() )
     {
-        this->Print();
+        //this->Print();
         switch( this->Check() )
         {
             //We have a solution
@@ -126,6 +128,7 @@ bool SAT_Problem::Solve()
                     {
                         vars[i] = Unset;
                         i--;
+                        backtracks++;
                     }
                 }
                 if (i<0) return false; //No solution exists (backtracked past front)
