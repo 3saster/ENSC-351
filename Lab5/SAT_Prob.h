@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 
+//Three-valued logic under Kleene Logic
 typedef enum { False=-1, Unset=0, True=1 } bool_SAT;
 
 class SAT_Problem
@@ -18,7 +19,7 @@ class SAT_Problem
         bool_SAT Check();
         bool Solve();
         void Print();
-        long long int GetBacktracks() {return backtracks;};
+        long long int GetBacktracks() {return backtracks;}
 };
 
 #endif //SAT_PROB_H

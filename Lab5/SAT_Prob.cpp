@@ -9,7 +9,7 @@
 Constructor
 
 Takes in an ifstream, and fills the vectors based on the clauses and numbers
-given. Currently assumes no comments
+given. Currently assumes no comments.
 */
 SAT_Problem::SAT_Problem (std::ifstream& textFile)
 {
@@ -40,7 +40,7 @@ SAT_Problem::SAT_Problem (std::ifstream& textFile)
 Print()
 
 Print the currect value of the vars vectors. Prints True as 1, False as 0, and
-X as unset, with the leftmost value being vars[0];
+X as unset, with the leftmost value being vars[0].
 */
 void SAT_Problem::Print()
 {
@@ -72,17 +72,21 @@ bool_SAT SAT_Problem::Check()
 {
     std::vector<bool_SAT> clauseResults ( clauses.size(), Unset );
     #pragma omp parallel for
-    for (int i=0; i<clauses.size(); i++)
+    for (unsigned int i=0; i<clauses.size(); i++)
     {
         std::vector<bool_SAT> clauseOutput;
         auto sign = [](int x) {return x/abs(x);};
 
+        //NOT gate    = -1*data
+        //BUFFER gate =  1*data
         for( auto var:clauses[i] )
-            clauseOutput.push_back( static_cast<bool_SAT>(sign(var)*vars[abs(var)-1]) );
+            clauseOutput.push_back( static_cast<bool_SAT>( sign(var) * vars[abs(var)-1] ) );
 
+        //OR gate = max(data)
         clauseResults[i] = *std::max_element(clauseOutput.begin(), clauseOutput.end());
     }
 
+    //AND gate = min(data)
     return *std::min_element(clauseResults.begin(), clauseResults.end());
 }
 
@@ -100,7 +104,7 @@ bool SAT_Problem::Solve()
         v=Unset;
     //Backtrack search
     int i=0;
-    while ( i <= vars.size() )
+    while ( i <= int( vars.size() ) )
     {
         //this->Print();
         switch( this->Check() )
