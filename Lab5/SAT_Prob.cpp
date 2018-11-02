@@ -1,9 +1,10 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
 #include <fstream>
 #include <cstdlib>
 #include "SAT_Prob.h"
+
+using namespace tribool;
 
 /*
 Constructor
@@ -75,19 +76,17 @@ bool_SAT SAT_Problem::Check()
     for (unsigned int i=0; i<clauses.size(); i++)
     {
         std::vector<bool_SAT> clauseOutput;
-        auto sign = [](int x) {return x/abs(x);};
 
-        //NOT gate    = -1*data
-        //BUFFER gate =  1*data
         for( auto var:clauses[i] )
-            clauseOutput.push_back( static_cast<bool_SAT>( sign(var) * vars[abs(var)-1] ) );
+        {
+            auto value = vars[abs(var)-1];
+            clauseOutput.push_back( var > 0 ? value : NOT(value) );
+        }
 
-        //OR gate = max(data)
-        clauseResults[i] = *std::max_element(clauseOutput.begin(), clauseOutput.end());
+        clauseResults[i] = OR(clauseOutput);
     }
 
-    //AND gate = min(data)
-    return *std::min_element(clauseResults.begin(), clauseResults.end());
+    return AND(clauseResults);
 }
 
 /*
@@ -140,5 +139,6 @@ bool SAT_Problem::Solve()
         }
     }
     //Should exit in switch case; if not, problem is ill-conditioned
+    std::cerr << "Error in SAT_Problem::Solve(): Exited in an unexpected way." << std::endl;
     return false;
 }

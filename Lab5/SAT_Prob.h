@@ -2,10 +2,28 @@
 #define SAT_PROB_H
 
 #include <vector>
+#include <algorithm>
 #include <fstream>
 
 //Three-valued logic under Kleene Logic
 typedef enum { False=-1, Unset=0, True=1 } bool_SAT;
+namespace tribool
+{
+    inline bool_SAT NOT(bool_SAT b) 
+    { 
+        return static_cast<bool_SAT> ( -1*b );
+    }
+
+    inline bool_SAT AND(std::vector<bool_SAT> b) 
+    { 
+        return *std::min_element(b.begin(), b.end()); 
+    }
+    
+    inline bool_SAT OR (std::vector<bool_SAT> b) 
+    { 
+        return *std::max_element(b.begin(), b.end()); 
+    }
+}
 
 class SAT_Problem
 {
