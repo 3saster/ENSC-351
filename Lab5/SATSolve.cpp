@@ -1,4 +1,5 @@
 #include <iostream>
+#include <atomic>
 #include <thread>
 #include <chrono>
 #include "SAT_Prob.h"
@@ -9,7 +10,7 @@
 
 #define DIV 200
 
-bool done=false;
+std::atomic<bool> done (false);
 
 void logger(SAT_Problem &sat)
 {
