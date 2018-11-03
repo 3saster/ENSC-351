@@ -17,7 +17,7 @@ void logger(SAT_Problem &sat)
     int i;
     float step = 1000 * LOGTIMER / DIV;
     //done must be checked many times due to the nature of threading
-    while(!done) 
+    while(!done)
     {
         i=0;
         //Trick to not sleep the full LOGTIMER amount if the SAT is solved early
@@ -28,7 +28,7 @@ void logger(SAT_Problem &sat)
         }
         if(!done)
         {
-            std::cout << sat.GetBacktracks() << " backtracks done so far.\r" << std::flush;
+            std::cout << "\r" << sat.GetBacktracks() << " backtracks done so far." << std::flush;
         }
     }
 }
@@ -55,21 +55,21 @@ int main(int argc, char *argv[])
     SAT_Problem sat(textFile);
     //Start Logger
     std::thread log(logger,std::ref(sat));
-    
+
     //SAT Solver
     if( sat.Solve() )
     {
         done = true;
-        std::cout << "A solution was found after " << sat.GetBacktracks() << " backtracks." << std::endl
+        std::cout << "\rA solution was found after " << sat.GetBacktracks() << " backtracks." << std::endl
                   << "Note that the left-most number is variable 1, and X's are don't-cares." << std::endl << std::endl;
         sat.Print();
     }
     else
     {
         done = true;
-        std::cout << "No solution could be found." << std::endl;
+        std::cout << "\rNo solution could be found." << std::endl;
     }
-    
+
     log.join();
 
     // End process
