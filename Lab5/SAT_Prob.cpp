@@ -76,14 +76,24 @@ bool_SAT SAT_Problem::Check()
     for (unsigned int i=0; i<clauses.size(); i++)
     {
         std::vector<bool_SAT> clauseOutput;
+        bool skip = false;
 
         for( auto var:clauses[i] )
         {
             auto value = vars[abs(var)-1];
-            clauseOutput.push_back( var > 0 ? value : NOT(value) );
+            value = var > 0 ? value : NOT(value);
+            //If value is True, this clause will be True, so leave early
+            if(value == True)
+            {
+                clauseResults[i] = True;
+                skip = true;
+                break;
+            }
+            clauseOutput.push_back(value);
         }
 
-        clauseResults[i] = OR(clauseOutput);
+        if(!skip)
+            clauseResults[i] = OR(clauseOutput);
     }
 
     return AND(clauseResults);
