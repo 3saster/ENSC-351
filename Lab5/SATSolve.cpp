@@ -1,4 +1,5 @@
 #include <iostream>
+#include <locale>
 #include <atomic>
 #include <thread>
 #include <chrono>
@@ -33,6 +34,14 @@ void logger(SAT_Problem &sat)
     }
 }
 
+//Small class to allow comma separated numbers (i.e 1234 will display as 1,234)
+class comma_numpunct : public std::numpunct<char>
+{
+    protected:
+        char do_thousands_sep()   const {return ','; }
+        std::string do_grouping() const {return "\3";}
+};
+
 int main(int argc, char *argv[])
 {
     /*    OPEN FILE    */
@@ -52,7 +61,11 @@ int main(int argc, char *argv[])
     }
 
     /*    SAT Problem Solver    */
+    //Initialize the SAT Problem
     SAT_Problem sat(textFile);
+    //Set cout to use commas
+    std::locale comma_locale(std::locale(), new comma_numpunct());
+    std::cout.imbue(comma_locale);
     //Start Logger
     std::thread log(logger,std::ref(sat));
 
