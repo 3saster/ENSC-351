@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     else
     {
         done = true;
-        std::cout << "\rNo solution could be found." << std::endl;
+        std::cout << "\rAfter " << sat.GetBacktracks() << " backtracks, the problem was found to be unsatisfiable." << std::endl;
     }
 
     log.join();
