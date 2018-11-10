@@ -145,12 +145,11 @@ bool SAT_Problem::Solve()
     solved=false;
     for( auto &v:vars )
         v=Unset;
+        
     //Backtrack search passed to group of threads
     std::thread *threads = new std::thread[threadNum];
     for(int tid=0; tid<threadNum; tid++)
-    {
         threads[tid] = std::thread(&SAT_Problem::threadSolve,this, tid,threadDepth);
-    }
 
     //Wait for threads to rejoin
     for(int tid=0; tid<threadNum; tid++)
