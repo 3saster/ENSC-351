@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <fstream>
+#include <atomic>
 
 //Three-valued logic under Kleene Logic
 typedef enum { False=-1, Unset=0, True=1 } bool_SAT;
@@ -19,10 +20,13 @@ class SAT_Problem
     private:
         std::vector<bool_SAT> vars;
         std::vector< std::vector<int> > clauses;
-        long long int backtracks = 0;
+        std::atomic<long long> backtracks {0};
+        bool solved = false;
+        bool threadSolve(int tid, int threadDepth);
 
     public:
         SAT_Problem (std::ifstream& textFile);
+        SAT_Problem(const SAT_Problem& sat);
         bool_SAT Check();
         bool Solve();
         void Print();

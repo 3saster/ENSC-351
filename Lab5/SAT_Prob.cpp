@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <cstdlib>
+#include <thread>
 #include "SAT_Prob.h"
 
 using namespace tribool;
@@ -35,6 +36,14 @@ SAT_Problem::SAT_Problem (std::ifstream& textFile)
         clauses.push_back(conditionVector);
         clause++;
     }
+}
+
+SAT_Problem::SAT_Problem(const SAT_Problem& sat)
+{
+    vars = sat.vars;
+    clauses = sat.clauses;
+    backtracks = sat.backtracks.load();
+    solved = sat.solved;
 }
 
 /*
@@ -114,48 +123,82 @@ true if a solution is found, otherwise return false.
 */
 bool SAT_Problem::Solve()
 {
+    //Get depth of parallel binary tree search (min of either round down number of cores, or number of variables )
+    int threadDepth = std::min( log2(std::thread::hardware_concurrency()), double( vars.size() ) );
+    int threadNum = pow(2,threadDepth);
+
     //Ensure variables are all unset
     backtracks=0;
+    solved=false;
     for( auto &v:vars )
         v=Unset;
     //Backtrack search
-    int i=0;
-    while ( i <= int( vars.size() ) )
+    std::thread *threads = new std::thread[threadNum];
+    for(int tid=0; tid<threadNum; tid++)
+    {
+        threads[tid] = std::thread(&SAT_Problem::threadSolve,this, tid,threadDepth);
+    }
+
+    for(int tid=0; tid<threadNum; tid++)
+        threads[tid].join();
+
+    delete [] threads;
+
+    if(solved)
+        return true;
+    else
+        return false;
+}
+
+bool SAT_Problem::threadSolve(int tid, int threadDepth)
+{
+    SAT_Problem copySAT = *this;
+    auto *copyVars = &copySAT.vars;
+    //Lock starting values
+    for(int i=0;i<threadDepth;i++)
+        (*copyVars)[i] = (tid>>i)%2 ? True : False;
+
+    //Backtrack search
+    int i=threadDepth;
+    while ( !solved && i <= int( (*copyVars).size() ) )
     {
         //this->Print();
-        switch( this->Check() )
+        switch( copySAT.Check() )
         {
             //We have a solution
             case True:
+                solved=true;
+                vars = *copyVars;
                 return true;
             //Keep advancing forward
             case Unset:
-                vars[i] = True;
+                (*copyVars)[i] = True;
                 i++;
                 break;
             //Backtrack to first "True" Value
             case False:
                 i--;
-                while( i >= 0)
+                while( i >= threadDepth)
                 {
-                    if( vars[i] == True )
+                    if( (*copyVars)[i] == True )
                     {
-                        vars[i] = False;
+                        (*copyVars)[i] = False;
                         i++;
                         break;
                     }
                     else
                     {
-                        vars[i] = Unset;
+                        (*copyVars)[i] = Unset;
                         i--;
                         backtracks++;
                     }
                 }
-                if (i<0) return false; //No solution exists (backtracked past front)
+                if (i<threadDepth) return false; //No solution exists (backtracked past front)
                 break;
         }
+        if(solved) return true;
     }
-    //Should exit in switch case; if not, problem is ill-conditioned
+    //Should exit in switch case; if not, something went wrong
     std::cerr << "Error in SAT_Problem::Solve(): Exited in an unexpected way." << std::endl;
     return false;
 }
