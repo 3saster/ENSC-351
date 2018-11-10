@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <thread>
+#include <mutex>
 #include "SAT_Prob.h"
 
 using namespace tribool;
@@ -145,7 +146,7 @@ bool SAT_Problem::Solve()
     solved=false;
     for( auto &v:vars )
         v=Unset;
-        
+
     //Backtrack search passed to group of threads
     std::thread *threads = new std::thread[threadNum];
     for(int tid=0; tid<threadNum; tid++)
@@ -172,6 +173,7 @@ are locked.
 For example, given a thread depth of 3 (i.e 8 cores), thread 0 does a backtrack search
 where the first three values are locked to 000, thread 1 does 100, thread 2 does 010, etc.
 */
+static std::mutex m;
 bool SAT_Problem::threadSolve(int tid, int threadDepth)
 {
     //Create copy of SAT problem and its vars
@@ -219,9 +221,11 @@ bool SAT_Problem::threadSolve(int tid, int threadDepth)
                 if (i<threadDepth) return false; //No solution exists (backtracked past locked values)
                 break;
         }
-        if(solved) return true;
     }
-    //Should exit in switch case; if not, something went wrong
+    if(solved) return true;
+    //Should exit in switch case or line above; if not, something went wrong
+    m.lock();
     std::cerr << "Error in SAT_Problem::threadSolve() on thread " << tid << ": Exited in an unexpected way." << std::endl;
+    m.unlock();
     return false;
 }
