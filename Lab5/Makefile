@@ -1,6 +1,6 @@
 # Declaration of variables
 CC = g++
-CC_FLAGS = -std=c++11 -pthread -fopenmp -O3
+CC_FLAGS = -std=c++11 -pthread -O3
 CC_EXTRA =
 
 main: SATSolve.cpp SAT_Prob.cpp

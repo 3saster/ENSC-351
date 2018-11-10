@@ -1,5 +1,4 @@
 #include <iostream>
-#include <atomic>
 #include <vector>
 #include <fstream>
 #include <cstdlib>
@@ -73,12 +72,9 @@ Note that we are using a three-valued boolean under Kleene logic.
 bool_SAT SAT_Problem::Check()
 {
     std::vector<bool_SAT> clauseResults ( clauses.size(), Unset );
-    std::atomic<bool> ANDskip(false);
 
-    #pragma omp parallel for
     for (unsigned int i=0; i<clauses.size(); i++)
     {
-        if(ANDskip) continue;
         std::vector<bool_SAT> clauseOutput;
         bool ORskip = false;
 
@@ -101,16 +97,13 @@ bool_SAT SAT_Problem::Check()
             auto clauseValue = OR(clauseOutput);
             //If value is false, the final AND will return False, so leave early
             if(clauseValue == False)
-                ANDskip=true;
+                return False;
             else
                 clauseResults[i] = clauseValue;
         }
     }
 
-    if(ANDskip)
-        return False;
-    else
-        return AND(clauseResults);
+    return AND(clauseResults);
 }
 
 /*
