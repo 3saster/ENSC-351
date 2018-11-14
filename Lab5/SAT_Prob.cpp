@@ -56,23 +56,21 @@ SAT_Problem::SAT_Problem(const SAT_Problem& sat)
 /*
 Print()
 
-Print the currect value of the vars vectors. Prints True as 1, False as 0, and
-X as unset, with the leftmost value being vars[0].
+Print the currect value of the vars vectors, in the form 1 -2 3...
+Note that Unset will be shown as true (this is meant to print a solution).
 */
 void SAT_Problem::Print()
 {
-    for( auto p:vars )
+    for( unsigned int i=0; i<vars.size(); i++ )
     {
-        switch(p)
+        switch(vars[i])
         {
             case True:
-                std::cout << "1";
-                break;
             case Unset:
-                std::cout << "X";
+                std::cout << " " << i+1;
                 break;
             case False:
-                std::cout << "0";
+                std::cout << " -" << i+1;
                 break;
         }
     }

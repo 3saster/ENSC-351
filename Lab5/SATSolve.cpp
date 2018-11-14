@@ -73,14 +73,15 @@ int main(int argc, char *argv[])
     if( sat.Solve() )
     {
         done = true;
-        std::cout << "\rA solution was found after " << sat.GetBacktracks() << " backtracks." << std::endl
-                  << "Note that the left-most number is variable 1, and X's are don't-cares." << std::endl << std::endl;
+        std::cout << "\rA solution was found after " << sat.GetBacktracks() << " backtracks." << std::endl << std::endl
+                  << "SAT";
         sat.Print();
     }
     else
     {
         done = true;
-        std::cout << "\rAfter " << sat.GetBacktracks() << " backtracks, the problem was found to be unsatisfiable." << std::endl;
+        std::cout << "\rAfter " << sat.GetBacktracks() << " backtracks, the problem was found to be unsatisfiable." << std::endl << std::endl
+                  << "UNSAT" << std::endl;
     }
 
     log.join();
