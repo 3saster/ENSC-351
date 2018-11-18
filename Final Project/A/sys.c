@@ -2642,7 +2642,11 @@ COMPAT_SYSCALL_DEFINE1(sysinfo, struct compat_sysinfo __user *, info)
 //Added system call for Part A of final project
 SYSCALL_DEFINE1(stringlength, char *, msg)
 {
-	printk(KERN_INFO "string \"%s\" has length %li\n", msg, strlen(msg));
+	char msg_copy[1024];
+	long copied = strncpy_from_user(msg_copy, msg, sizeof(msg_copy));
+	if(copied < 0 || copied == sizeof(msg_copy))
+		return -EFAULT;
+	printk(KERN_INFO "string \"%s\" has length %li\n", msg_copy, strlen(msg_copy));
 	return 0;
 }
 
