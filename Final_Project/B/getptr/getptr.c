@@ -69,7 +69,7 @@ static int getptr_release(struct inode* inode_pointer, struct file* file_pointer
 static ssize_t getptr_write(struct file *file, const char *data, size_t length, loff_t *offset_in_file)
 {
     printk(KERN_NOTICE "Attempted to write to getptr driver (not permitted).\n");
-    return 0;
+    return -EPERM;
 }
 
 static int major_num;
