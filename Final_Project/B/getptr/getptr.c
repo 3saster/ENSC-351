@@ -21,14 +21,14 @@ static ssize_t getptr_read(struct file *file, char *data, size_t length, loff_t 
     printk(KERN_INFO "Entered getptr_read.\n");
     if( length == PTR_SIZE )
     {
-        printk(KERN_INFO "1024 free bytes at location: 0x%p", getptr_freespace);
+        printk(KERN_INFO "1024 free bytes at location: 0x%p\n", getptr_freespace);
 
         //Store pointer as a string of hex values
         char pointerValue[2*PTR_SIZE];
         snprintf(pointerValue, 2*PTR_SIZE+1, "%p", getptr_freespace);
 
         //Convert pair of hex-chars to one byte
-        //i.e. ff-> 255, 05 -> 5, 50 -> 80, etc.
+        //i.e. ff -> 255, 05 -> 5, 50 -> 80, etc.
         char kernel_data[PTR_SIZE];
         int i;
         for(i=0; i<PTR_SIZE; i++)
@@ -36,12 +36,21 @@ static ssize_t getptr_read(struct file *file, char *data, size_t length, loff_t 
             kernel_data[i] = 16*hex_value(pointerValue[2*i]) + hex_value(pointerValue[2*i + 1]);
         }
 
-        return copy_to_user(data, kernel_data, PTR_SIZE); //copy_to_user returns number of non-copied Bytes (thus zero on success, non-zero on failure)
+        unsigned long copied = copy_to_user(data, kernel_data, PTR_SIZE); //copy_to_user returns number of non-copied Bytes (thus zero on success, non-zero on failure)
+        if(copied == 0)
+        {
+            return 0;
+        }
+        else
+        {
+            printk(KERN_ERR "Unable to copy address to user-space.\n");
+            return -ENOMEM;
+        }
     }
     else
     {
-        printk(KERN_INFO "Error in getptr: you must read exactly %i bytes.", PTR_SIZE);
-        return -1;
+        printk(KERN_ERR "Error in getptr: you must read exactly %i bytes.\n", PTR_SIZE);
+        return -EFAULT;
     }
 }
 
@@ -59,7 +68,7 @@ static int getptr_release(struct inode* inode_pointer, struct file* file_pointer
 
 static ssize_t getptr_write(struct file *file, const char *data, size_t length, loff_t *offset_in_file)
 {
-    printk(KERN_INFO "Attempted to write to getptr driver (not permitted)\n");
+    printk(KERN_NOTICE "Attempted to write to getptr driver (not permitted).\n");
     return 0;
 }
 
