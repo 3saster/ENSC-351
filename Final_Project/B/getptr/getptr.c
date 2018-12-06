@@ -21,11 +21,11 @@ static ssize_t getptr_read(struct file *file, char *data, size_t length, loff_t 
     printk(KERN_INFO "Entered getptr_read.\n");
     if( length == PTR_SIZE )
     {
-        printk(KERN_INFO "1024 free bytes at location: 0x%p\n", getptr_freespace);
+        printk(KERN_INFO "1024 free bytes at location: 0x%.*x\n", PTR_SIZE*2,getptr_freespace);
 
         //Store pointer as a string of hex values
         char pointerValue[2*PTR_SIZE];
-        snprintf(pointerValue, 2*PTR_SIZE+1, "%p", getptr_freespace);
+        snprintf(pointerValue, 2*PTR_SIZE+1, "%.*x", PTR_SIZE*2,(int)getptr_freespace);
 
         //Convert pair of hex-chars to one byte
         //i.e. ff -> 255, 05 -> 5, 50 -> 80, etc.
