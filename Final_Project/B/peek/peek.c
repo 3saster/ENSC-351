@@ -69,7 +69,7 @@ static ssize_t peek_write(struct file *file, const char *data, size_t length, lo
     }
     else
     {
-        printk(KERN_ERR "Error in peek: you must write exactly %i %i bytes.\n", PTR_SIZE, length);
+        printk(KERN_ERR "Error in peek: you must write exactly %i bytes (%i bytes were given).\n", PTR_SIZE, length);
         return -EFAULT;
     }
 }
